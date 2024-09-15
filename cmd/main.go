@@ -13,6 +13,8 @@ func main() {
 
 	log.Info("logger and config successfully init")
 
+	// impl grpcServer
+	// impl shutdown
 }
 
 func initLogger(env string) *slog.Logger {
