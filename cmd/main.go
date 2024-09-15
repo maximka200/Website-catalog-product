@@ -3,7 +3,10 @@ package main
 import (
 	"log/slog"
 	"os"
+	"os/signal"
+	"productservice/internal/app"
 	"productservice/internal/config"
+	"syscall"
 )
 
 func main() {
@@ -11,10 +14,18 @@ func main() {
 
 	log := initLogger(cfg.Env)
 
-	log.Info("logger and config successfully init")
+	application := app.NewApp(log, cfg.Port)
+	go application.MustRun()
+	// run server
 
-	// impl grpcServer
-	// impl shutdown
+	stop := make(chan os.Signal, 1)
+
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+	<-stop
+
+	application.GRPCSrv.Stop()
+
+	log.Info("application stopped")
 }
 
 func initLogger(env string) *slog.Logger {

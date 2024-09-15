@@ -9,6 +9,7 @@ import (
 )
 
 type Config struct {
+	Env     string        `mapstructure:"env"`
 	Host    string        `mapstructure:"host"`
 	Port    string        `mapstructure:"port"`
 	Timeout time.Duration `mapstructure:"timeout"`
@@ -16,7 +17,6 @@ type Config struct {
 }
 
 type DB struct {
-	Env      string `mapstructure:"env"`
 	Username string `mapstructure:"username"`
 	Password string `mapstructure:"password"`
 	Host     string `mapstructure:"host"`
