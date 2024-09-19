@@ -13,8 +13,9 @@ func main() {
 	cfg := config.MustReadConfig()
 
 	log := initLogger(cfg.Env)
-
-	application := app.NewApp(log, cfg.Port)
+	log.Info("logger and config success start")
+	application := app.NewApp(log, &cfg)
+	log.Info("app success start")
 	go application.MustRun()
 	// run server
 

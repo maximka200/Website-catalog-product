@@ -7,6 +7,7 @@ import (
 	"productservice/internal/models"
 
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
 type StorageStruct struct {
@@ -22,11 +23,6 @@ func NewDB(cfg *config.Config) (*sqlx.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s:%s", err, op)
 	}
-	// "host=localhost port=5432 user=user password=password dbname=ppostgredb sslmode=disable"
-	err = db.Ping()
-	if err != nil {
-		return nil, fmt.Errorf("%w:%s", err, op)
-	}
 	return db, nil
 }
 
@@ -34,20 +30,20 @@ func NewStorageStruct(db *sqlx.DB) *StorageStruct {
 	return &StorageStruct{db: db}
 }
 
-func NewProduct(ctx context.Context, imageURL string, title string, description string, price int64, currency int32) (int64, error) {
+func (s *StorageStruct) NewProduct(ctx context.Context, imageURL string, title string, description string, price int64, currency int32) (int64, error) {
 	const op = "storage.NewProduct"
 
 	return 0, nil
 }
 
-func DeleteProduct(ctx context.Context, id int64) (bool, error) {
+func (s *StorageStruct) DeleteProduct(ctx context.Context, id int64) (bool, error) {
 	const op = "storage.DeleteProduct"
 
-	return true, nil
+	return false, nil
 }
 
-func GetProduct(ctx context.Context, id int64) (*models.Product, error) {
+func (s *StorageStruct) GetProduct(ctx context.Context, id int64) (*models.Product, error) {
 	const op = "storage.GetProduct"
 
-	return &models.Product{}, nil
+	return &models.Product{Title: "pedic"}, nil
 }
