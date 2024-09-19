@@ -10,7 +10,7 @@ import (
 )
 
 type Products interface {
-	NewProduct(ctx context.Context, imageURL string, title string, Description string, Price int64, Currency int32) (int64, error)
+	NewProduct(ctx context.Context, imageURL string, title string, Description string, Discount uint8, Price int64, Currency int32) (int64, error)
 	DeleteProduct(ctx context.Context, id int64) (bool, error)
 	GetProduct(ctx context.Context, id int64) (*models.Product, error)
 }
@@ -27,7 +27,7 @@ func RegisterServ(gRPC *grpc.Server, protuct Products) {
 func (s *serverAPI) NewProduct(ctx context.Context, req *productv1.NewProductRequest) (*productv1.NewProductResponse, error) {
 	const op = "productgprc.NewProduct"
 
-	rq, err := s.product.NewProduct(ctx, req.GetImageURL(), req.GetTitle(), req.GetDescription(), req.GetPrice(), req.GetCurrency())
+	rq, err := s.product.NewProduct(ctx, req.GetImageURL(), req.GetTitle(), req.GetDescription(), uint8(req.GetDiscount()), req.GetPrice(), req.GetCurrency())
 	if err != nil {
 		return nil, fmt.Errorf("%s: %s", op, err)
 	}
@@ -38,12 +38,13 @@ func (s *serverAPI) NewProduct(ctx context.Context, req *productv1.NewProductReq
 func (s *serverAPI) GetProduct(ctx context.Context, req *productv1.GetProductRequest) (*productv1.GetProductResponse, error) {
 	const op = "productgprc.GetProduct"
 
-	_, err := s.product.GetProduct(context.Background(), req.GetId())
+	resp, err := s.product.GetProduct(context.Background(), req.GetId())
 	if err != nil {
 		return nil, fmt.Errorf("%s: %s", op, err)
 	}
 	//todo: marshall model.Product in productv1.GetProductResponse
-	return &productv1.GetProductResponse{}, nil
+	return &productv1.GetProductResponse{Id: resp.Id, ImageURL: resp.ImageURL, Title: resp.Title,
+		Description: resp.Description, Price: resp.Price, Currency: resp.Currency}, nil
 }
 
 func (s *serverAPI) DeleteProduct(ctx context.Context, req *productv1.DeleteProductRequest) (*productv1.DeleteProductResponse, error) {
