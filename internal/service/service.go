@@ -12,7 +12,7 @@ type ProductStruct struct {
 }
 
 type StorageMethod interface {
-	NewProduct(ctx context.Context, imageURL string, title string, description string, price int64, currency int32) (int64, error)
+	NewProduct(ctx context.Context, imageURL string, title string, description string, discount uint8, price int64, currency int32, productURL string) (int64, error)
 	DeleteProduct(ctx context.Context, id int64) (bool, error)
 	GetProduct(ctx context.Context, id int64) (*models.Product, error)
 }
@@ -21,10 +21,10 @@ func NewProductStruct(storage StorageMethod) *ProductStruct {
 	return &ProductStruct{storageStruct: storage}
 }
 
-func (ps *ProductStruct) NewProduct(ctx context.Context, imageURL string, title string, description string, price int64, currency int32) (int64, error) {
+func (ps *ProductStruct) NewProduct(ctx context.Context, imageURL string, title string, description string, discount uint8, price int64, currency int32, productURL string) (int64, error) {
 	const op = "service.NewProduct"
 
-	id, err := ps.storageStruct.NewProduct(ctx, imageURL, title, description, price, currency)
+	id, err := ps.storageStruct.NewProduct(ctx, imageURL, title, description, discount, price, currency, productURL)
 	if err != nil {
 		return 0, fmt.Errorf("%s: %s", op, err)
 	}

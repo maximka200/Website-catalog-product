@@ -3,19 +3,22 @@ package storage
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"productservice/internal/config"
 	"productservice/internal/models"
+	"strconv"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
 const (
-	productTable = "Products"
+	productTable = "products"
 )
 
 type StorageStruct struct {
-	db *sqlx.DB
+	db  *sqlx.DB
+	log *slog.Logger
 }
 
 func NewDB(cfg *config.Config) (*sqlx.DB, error) {
@@ -23,30 +26,40 @@ func NewDB(cfg *config.Config) (*sqlx.DB, error) {
 
 	db, err := sqlx.Open("postgres",
 		fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-			cfg.Host, cfg.Port, cfg.Username, cfg.Password, cfg.DBname, cfg.SSLmode))
+			cfg.DB.Host, cfg.DB.Port, cfg.DB.Username, cfg.DB.Password, cfg.DB.DBname, cfg.DB.SSLmode))
 	if err != nil {
 		return nil, fmt.Errorf("%s:%s", err, op)
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), cfg.Timeout)
+	defer cancel()
+
+	if err := db.PingContext(ctx); err != nil {
+		return nil, fmt.Errorf("%s:%s", err, op)
+	}
+
 	return db, nil
 }
 
-func NewStorageStruct(db *sqlx.DB) *StorageStruct {
-	return &StorageStruct{db: db}
+func NewStorageStruct(db *sqlx.DB, log *slog.Logger) *StorageStruct {
+	return &StorageStruct{db: db, log: log}
 }
 
-func (s *StorageStruct) NewProduct(ctx context.Context, imageURL string, title string, description string, discount uint8, price int64, currency int32) (int64, error) {
+func (s *StorageStruct) NewProduct(ctx context.Context, imageURL string, title string, description string, discount uint8, price int64, currency int32, productURL string) (int64, error) {
 	const op = "storage.NewProduct"
-
-	stmt, err := s.db.Prepare(fmt.Sprintf(`INSERT INTO %s (image_url, title, description, price, currency,
-	discount, product_url) VALUES (?, ?, ?, ?, ?, ?, ?)`, productTable))
+	s.log.Info(imageURL)
+	stmt, err := s.db.Prepare(fmt.Sprintf("INSERT INTO %s (image_url, title, description, price, currency, discount, product_url) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id", productTable))
 	if err != nil {
 		return 0, fmt.Errorf("%s: %s", op, err)
 	}
 
-	res, err := stmt.QueryContext(ctx, imageURL, title, description, price, currency)
+	res, err := stmt.QueryContext(ctx, imageURL, title, description, price, currency, discount, productURL)
 	if err != nil {
 		return 0, fmt.Errorf("%s: %s", op, err)
 	}
+
+	// INSERT 0 1
+	res.Next()
 
 	var id int64
 
@@ -59,17 +72,17 @@ func (s *StorageStruct) NewProduct(ctx context.Context, imageURL string, title s
 
 func (s *StorageStruct) DeleteProduct(ctx context.Context, id int64) (bool, error) {
 	const op = "storage.DeleteProduct"
-
-	stmt, err := s.db.Prepare("DELETE FROM %s WHERE id=?")
+	s.log.Info(strconv.Itoa(int(id)))
+	stmt, err := s.db.Prepare(fmt.Sprintf("DELETE FROM %s WHERE id=$1", productTable))
 	if err != nil {
 		return false, fmt.Errorf("%s: %s", op, err)
 	}
+	defer stmt.Close()
 
-	res, err := stmt.ExecContext(ctx, id)
+	res, err := stmt.Exec(id)
 	if err != nil {
 		return false, fmt.Errorf("%s: %s", op, err)
 	}
-
 	count, err := res.RowsAffected()
 	if err != nil {
 		return false, fmt.Errorf("%s: %s", op, err)
@@ -85,13 +98,13 @@ func (s *StorageStruct) GetProduct(ctx context.Context, id int64) (*models.Produ
 
 	var model *models.Product
 
-	stmt, err := s.db.Prepare("SELECT * FROM $s WHERE id=?")
+	stmt, err := s.db.Prepare(fmt.Sprintf("SELECT * FROM %s WHERE id=$1", productTable))
 	if err != nil {
 		return nil, fmt.Errorf("%s: %s", op, err)
 	}
 
 	res := stmt.QueryRowContext(ctx, id)
-
+	// expected 8 destination arguments in Scan, not 1
 	if err := res.Scan(model); err != nil {
 		return nil, fmt.Errorf("%s: %s", op, err)
 	}

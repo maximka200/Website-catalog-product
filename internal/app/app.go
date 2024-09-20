@@ -18,8 +18,10 @@ func NewApp(log *slog.Logger, cfg *config.Config) *App {
 	if err != nil {
 		panic(fmt.Sprintf("cannot connect with db: %s", err))
 	}
-	log.Info("db success created")
-	storage := storage.NewStorageStruct(db)
+	storage := storage.NewStorageStruct(db, log)
+	log = log.With(slog.String("portdb", cfg.DB.Port), slog.String("hostdb", cfg.DBname),
+		slog.String("username and password", cfg.DB.Username+" "+cfg.DB.Password))
+	log.Info("success connect to db")
 	prod := service.NewProductStruct(storage)
 	grpcApp := grpcapp.NewGRPCApp(log, cfg.Port, prod)
 

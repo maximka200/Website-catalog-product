@@ -7,4 +7,4 @@ tasks:
   postgres:
     - docker run --name postgresproduct -p 5432:5432 -e POSTGRES_USER=user -e POSTGRES_PASSWORD=password -d ubuntu/postgres
   createdb:
-    - docker exec -it postgres createdb --username=user --owner=user jpsdb
+    - docker exec -it postgresproduct createdb --username=user --owner=user productdb

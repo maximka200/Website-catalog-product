@@ -3,6 +3,7 @@ package productgprc
 import (
 	"context"
 	"fmt"
+
 	"productservice/internal/models"
 
 	productv1 "github.com/maximka200/protobuff_product/gen"
@@ -10,7 +11,7 @@ import (
 )
 
 type Products interface {
-	NewProduct(ctx context.Context, imageURL string, title string, Description string, Discount uint8, Price int64, Currency int32) (int64, error)
+	NewProduct(ctx context.Context, imageURL string, title string, description string, discount uint8, price int64, currency int32, productURL string) (int64, error)
 	DeleteProduct(ctx context.Context, id int64) (bool, error)
 	GetProduct(ctx context.Context, id int64) (*models.Product, error)
 }
@@ -27,7 +28,7 @@ func RegisterServ(gRPC *grpc.Server, protuct Products) {
 func (s *serverAPI) NewProduct(ctx context.Context, req *productv1.NewProductRequest) (*productv1.NewProductResponse, error) {
 	const op = "productgprc.NewProduct"
 
-	rq, err := s.product.NewProduct(ctx, req.GetImageURL(), req.GetTitle(), req.GetDescription(), uint8(req.GetDiscount()), req.GetPrice(), req.GetCurrency())
+	rq, err := s.product.NewProduct(ctx, req.GetImageURL(), req.GetTitle(), req.GetDescription(), uint8(req.GetDiscount()), req.GetPrice(), req.GetCurrency(), req.GetProductURL())
 	if err != nil {
 		return nil, fmt.Errorf("%s: %s", op, err)
 	}
@@ -44,7 +45,7 @@ func (s *serverAPI) GetProduct(ctx context.Context, req *productv1.GetProductReq
 	}
 	//todo: marshall model.Product in productv1.GetProductResponse
 	return &productv1.GetProductResponse{Id: resp.Id, ImageURL: resp.ImageURL, Title: resp.Title,
-		Description: resp.Description, Price: resp.Price, Currency: resp.Currency}, nil
+		Description: resp.Description, Price: resp.Price, Currency: resp.Currency, ProductURL: resp.ProductURL}, nil
 }
 
 func (s *serverAPI) DeleteProduct(ctx context.Context, req *productv1.DeleteProductRequest) (*productv1.DeleteProductResponse, error) {

@@ -35,11 +35,11 @@ func (app *GRPCApp) Run() error {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	log.Info("gRPC server is running", slog.String("addr", l.Addr().String()))
-
 	if err := app.gRPCServer.Serve(l); err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
+
+	log.Info("gRPC server is running", slog.String("addr", l.Addr().String()))
 
 	return nil
 }
