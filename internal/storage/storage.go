@@ -96,7 +96,7 @@ func (s *StorageStruct) DeleteProduct(ctx context.Context, id int64) (bool, erro
 func (s *StorageStruct) GetProduct(ctx context.Context, id int64) (*models.Product, error) {
 	const op = "storage.GetProduct"
 
-	var model *models.Product
+	model := &models.Product{}
 
 	stmt, err := s.db.Prepare(fmt.Sprintf("SELECT * FROM %s WHERE id=$1", productTable))
 	if err != nil {
@@ -105,7 +105,7 @@ func (s *StorageStruct) GetProduct(ctx context.Context, id int64) (*models.Produ
 
 	res := stmt.QueryRowContext(ctx, id)
 	// expected 8 destination arguments in Scan, not 1
-	if err := res.Scan(model); err != nil {
+	if err := res.Scan(&model.Id, &model.ImageURL, &model.Title, &model.Description, &model.Price, &model.Currency, &model.Discount, &model.ProductURL); err != nil {
 		return nil, fmt.Errorf("%s: %s", op, err)
 	}
 
