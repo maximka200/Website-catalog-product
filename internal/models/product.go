@@ -1,7 +1,7 @@
 package models
 
 type Product struct {
-	Id          int64  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty" db:"id"`
+	Id          string `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty" db:"id"`
 	ImageURL    string `protobuf:"bytes,2,opt,name=imageURL,proto3" json:"imageURL,omitempty" db:"image_url"`
 	Title       string `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty" db:"title"`
 	Description string `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty" db:"description"`
