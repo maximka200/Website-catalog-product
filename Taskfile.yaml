@@ -8,3 +8,7 @@ tasks:
     - docker run --name postgresproduct -p 5432:5432 -e POSTGRES_USER=user -e POSTGRES_PASSWORD=password -d ubuntu/postgres
   createdb:
     - docker exec -it postgresproduct createdb --username=user --owner=user productdb
+  migrateUp:
+    - goose -dir schema postgres "postgres://user:password@localhost:5432/productdb?sslmode=disable" up
+  migrateDown:
+    - goose -dir schema postgres "postgres://user:password@localhost:5432/productdb?sslmode=disable" down

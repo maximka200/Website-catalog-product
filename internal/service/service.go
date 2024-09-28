@@ -76,6 +76,7 @@ func (ps *ProductStruct) GetProducts(ctx context.Context, count int64) (*product
 	return &productv1.GetProductsResponse{ProductList: idResultList}, nil
 }
 
+// generate random id list in ids
 func getRandomIDs(ids []int, n int) *[]int {
 	rand.Shuffle(len(ids), func(i, j int) {
 		ids[i], ids[j] = ids[j], ids[i]
@@ -90,6 +91,7 @@ func getRandomIDs(ids []int, n int) *[]int {
 	return &ids
 }
 
+// give products in idList
 func getProductList(ps *ProductStruct, ctx context.Context, idList []int) ([]*productv1.GetProductResponse, error) {
 	const op = "storage.getProductList"
 	var result []*productv1.GetProductResponse
